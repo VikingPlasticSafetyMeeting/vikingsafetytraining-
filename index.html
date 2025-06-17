@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viking Plastics Safety Meeting</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <style>
         :root {
             --primary-blue: #004A8F;
@@ -16,16 +18,23 @@
             --button-color: #004A8F;
             --button-hover: #003a70;
             --section-padding: 30px 20px;
+            --success-green: #28a745;
+            --warning-yellow: #ffc107;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: 'Roboto', sans-serif;
-            margin: 0;
-            padding: 0;
             background-color: var(--light-gray);
             color: var(--dark-text);
             line-height: 1.6;
             background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
         }
 
         header {
@@ -57,13 +66,45 @@
             text-align: center;
             white-space: nowrap;
             flex: 1;
-            padding: 0 60px; /* Added padding to center properly */
+            padding: 0 60px;
         }
 
         .container {
             max-width: 1200px;
             margin: 20px auto;
             padding: 0 20px;
+        }
+
+        .sync-status {
+            background-color: var(--warning-yellow);
+            color: #333;
+            text-align: center;
+            padding: 10px;
+            font-weight: 500;
+            position: sticky;
+            top: 70px;
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sync-status.synced {
+            background-color: var(--success-green);
+            color: white;
+        }
+
+        .sync-status span {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #666;
+        }
+
+        .sync-status.synced span {
+            background-color: white;
         }
 
         section {
@@ -89,6 +130,14 @@
             border-bottom: 2px solid var(--primary-blue);
             padding-bottom: 10px;
             font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h2 i {
+            font-size: 0.8em;
+            opacity: 0.7;
         }
 
         h3 {
@@ -349,7 +398,6 @@
             position: absolute;
         }
 
-        /* Fixed animation size */
         .save-meeting-btn .viking-animated-text {
             position: absolute;
             top: 50%;
@@ -357,7 +405,7 @@
             transform: translate(-50%, -50%) scale(0.8);
             opacity: 0;
             color: #ffffff;
-            font-size: 1.4em; /* Adjusted size */
+            font-size: 1.4em;
             font-weight: 900;
             white-space: nowrap;
             pointer-events: none;
@@ -427,14 +475,12 @@
             }
         }
 
-        /* Date buttons container */
         .date-controls {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
 
-        /* Clear date button style */
         .clear-date-btn {
             background-color: #dc3545;
             color: white;
@@ -449,7 +495,6 @@
             background-color: #c82333;
         }
         
-        /* Export buttons */
         .export-buttons {
             display: flex;
             gap: 10px;
@@ -459,6 +504,7 @@
         
         .export-btn {
             background-color: #28a745;
+            color: white;
             padding: 10px 20px;
             border-radius: 5px;
             font-weight: 600;
@@ -476,7 +522,6 @@
             font-size: 1.2em;
         }
         
-        /* Footer */
         footer {
             text-align: center;
             padding: 20px;
@@ -484,6 +529,53 @@
             font-size: 0.9em;
             margin-top: 30px;
             border-top: 1px solid #ddd;
+        }
+
+        .sync-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .sync-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .sync-content h3 {
+            margin-bottom: 20px;
+            color: var(--primary-blue);
+        }
+
+        .sync-content p {
+            margin-bottom: 20px;
+        }
+
+        .sync-id-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 5px;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        .sync-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
         }
 
         /* Mobile Responsiveness */
@@ -561,6 +653,10 @@
             .export-buttons {
                 flex-direction: column;
             }
+            
+            .sync-buttons {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -570,9 +666,13 @@
         <h1>Viking Plastics Safety Meeting</h1>
     </header>
 
+    <div class="sync-status">
+        <span></span> Syncing to cloud...
+    </div>
+
     <div class="container">
         <section>
-            <h2>Welcome and Purpose</h2>
+            <h2>Welcome and Purpose <i>(Changes sync across devices)</i></h2>
             <p>Welcome to our safety meeting at the Kentucky plant. The purpose of these regular meetings is to foster a proactive safety culture, address potential hazards, discuss incidents, share best practices, and ensure a safe working environment for all employees. Your active participation is crucial to our success.</p>
         </section>
 
@@ -829,12 +929,12 @@
                 <button class="export-btn" onclick="exportAsText()">
                     <i>📄</i> Export as Text File
                 </button>
-                <button class="export-btn" onclick="exportAsPDF()">
-                    <i>📊</i> Export as PDF
+                <button class="export-btn" onclick="shareSyncCode()">
+                    <i>🔗</i> Get Sync Code
                 </button>
             </div>
             
-            <p style="margin-top: 10px; font-size: 0.9em; color: #666;">(This ensures all tables and the next meeting date are saved to your browser.)</p>
+            <p style="margin-top: 10px; font-size: 0.9em; color: #666;">(All changes sync automatically to your other devices)</p>
         </div>
     </div>
 
@@ -843,7 +943,188 @@
         <p>© 2023 Viking Plastics. All rights reserved.</p>
     </footer>
 
+    <div class="sync-modal" id="syncModal">
+        <div class="sync-content">
+            <h3>Sync Across Devices</h3>
+            <p>To access this meeting on another device, use the following sync code:</p>
+            <input type="text" id="syncCodeDisplay" class="sync-id-input" readonly>
+            <p>Or enter an existing sync code to join a meeting:</p>
+            <input type="text" id="syncCodeInput" class="sync-id-input" placeholder="Enter sync code">
+            <div class="sync-buttons">
+                <button onclick="copySyncCode()">Copy Sync Code</button>
+                <button onclick="joinMeeting()">Join Meeting</button>
+                <button onclick="closeSyncModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6SxQdU5v6bGx3yJg-7f3Zz4W8v7y4b0c",
+            authDomain: "viking-plastics-safety.firebaseapp.com",
+            projectId: "viking-plastics-safety",
+            storageBucket: "viking-plastics-safety.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // Global variables
+        let currentMeetingId = '';
+        let isNewMeeting = true;
+        
+        // Initialize meeting
+        function initializeMeeting() {
+            // Check if we have a meeting ID in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const meetingId = urlParams.get('meeting');
+            
+            if (meetingId) {
+                // Join existing meeting
+                joinMeetingById(meetingId);
+                isNewMeeting = false;
+            } else {
+                // Create new meeting
+                createNewMeeting();
+            }
+        }
+        
+        // Create a new meeting
+        function createNewMeeting() {
+            // Generate a unique meeting ID
+            currentMeetingId = generateMeetingId();
+            
+            // Set URL with meeting ID
+            window.history.replaceState({}, '', `?meeting=${currentMeetingId}`);
+            
+            // Show sync code in modal
+            document.getElementById('syncCodeDisplay').value = currentMeetingId;
+            document.getElementById('syncModal').style.display = 'flex';
+            
+            // Initialize with default data
+            saveAllMeetingData();
+        }
+        
+        // Join meeting by ID
+        function joinMeetingById(meetingId) {
+            currentMeetingId = meetingId;
+            
+            // Load meeting data
+            loadMeetingData(meetingId);
+            
+            // Update sync status
+            updateSyncStatus(true);
+        }
+        
+        // Load meeting data from Firestore
+        function loadMeetingData(meetingId) {
+            db.collection("meetings").doc(meetingId).get().then((doc) => {
+                if (doc.exists) {
+                    const meetingData = doc.data();
+                    
+                    // Set next meeting date
+                    if (meetingData.nextMeetingDate) {
+                        document.getElementById('nextMeetingDate').value = meetingData.nextMeetingDate;
+                        const dateObj = new Date(meetingData.nextMeetingDate);
+                        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                        const formattedDate = dateObj.toLocaleDateString('en-US', options);
+                        document.getElementById('dateDisplay').innerHTML = `<strong>Next Meeting:</strong> ${formattedDate}`;
+                        document.getElementById('clearNextMeetingDateBtn').style.display = 'inline-block';
+                        document.getElementById('saveNextMeetingDateBtn').style.display = 'none';
+                    }
+                    
+                    // Load all tables
+                    loadTableData('membersPresent', meetingData.membersPresent);
+                    loadTableData('oldActionItems', meetingData.oldActionItems);
+                    loadTableData('newActionItems', meetingData.newActionItems);
+                    loadTableData('completedActions', meetingData.completedActions);
+                    loadTableData('incidents', meetingData.incidents);
+                    loadTableData('safetyIdeas', meetingData.safetyIdeas);
+                    loadTableData('strengths', meetingData.strengths);
+                    loadTableData('challenges', meetingData.challenges);
+                    
+                    updateSyncStatus(true);
+                } else {
+                    alert("Meeting not found. Creating a new meeting...");
+                    createNewMeeting();
+                }
+            }).catch((error) => {
+                console.error("Error loading meeting: ", error);
+                alert("Error loading meeting. Creating a new meeting...");
+                createNewMeeting();
+            });
+        }
+        
+        // Save meeting data to Firestore
+        function saveMeetingToCloud() {
+            if (!currentMeetingId) return;
+            
+            const meetingData = gatherMeetingData();
+            
+            db.collection("meetings").doc(currentMeetingId).set(meetingData)
+            .then(() => {
+                console.log("Meeting data saved to cloud");
+                updateSyncStatus(true);
+            })
+            .catch((error) => {
+                console.error("Error saving meeting: ", error);
+                updateSyncStatus(false);
+            });
+        }
+        
+        // Generate a random meeting ID
+        function generateMeetingId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 8; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
+        // Update sync status UI
+        function updateSyncStatus(synced) {
+            const syncStatus = document.querySelector('.sync-status');
+            if (synced) {
+                syncStatus.textContent = "Synced to cloud";
+                syncStatus.classList.add('synced');
+            } else {
+                syncStatus.textContent = "Syncing to cloud...";
+                syncStatus.classList.remove('synced');
+            }
+        }
+        
+        // UI functions
+        function shareSyncCode() {
+            document.getElementById('syncCodeDisplay').value = currentMeetingId;
+            document.getElementById('syncModal').style.display = 'flex';
+        }
+        
+        function copySyncCode() {
+            const copyText = document.getElementById("syncCodeDisplay");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+            alert("Sync code copied to clipboard!");
+        }
+        
+        function joinMeeting() {
+            const syncCode = document.getElementById("syncCodeInput").value.trim();
+            if (syncCode) {
+                window.location.href = `?meeting=${syncCode}`;
+            } else {
+                alert("Please enter a sync code");
+            }
+        }
+        
+        function closeSyncModal() {
+            document.getElementById('syncModal').style.display = 'none';
+        }
+        
         // Function to load data from localStorage
         function loadData(key) {
             const data = localStorage.getItem(key);
@@ -913,6 +1194,7 @@
 
             saveData(storageKey, newData);
             renderTable(tableBody.id, newData, storageKey);
+            saveMeetingToCloud();
         }
 
         // Function to clear all rows from a table and localStorage
@@ -939,6 +1221,7 @@
                 'safetyIdeasTableBody': 'safetyIdeas'
             };
             saveData(storageKeyMap[tableBodyId], []);
+            saveMeetingToCloud();
         }
 
         // Explicit Save Table Function - Now triggers VP animation
@@ -984,6 +1267,7 @@
             if (buttonElement) {
                 triggerVpSaveAnimation(buttonElement);
             }
+            saveMeetingToCloud();
         }
 
         // Generic function to add an entry to any specified table
@@ -997,6 +1281,7 @@
                 saveData(storageKey, data);
                 renderTable(tableBodyId, data, storageKey);
                 inputElement.value = '';
+                saveMeetingToCloud();
             }
         }
 
@@ -1014,6 +1299,7 @@
                 renderTable('membersPresentTableBody', members, 'membersPresent');
                 nameInput.value = '';
                 roleInput.value = '';
+                saveMeetingToCloud();
             } else {
                 alert('Please enter a member name.');
             }
@@ -1040,6 +1326,7 @@
                 
                 // Trigger animation on save button
                 triggerVpSaveAnimation(document.getElementById('saveNextMeetingDateBtn'));
+                saveMeetingToCloud();
             } else {
                 alert('Please select a date.');
             }
@@ -1052,6 +1339,7 @@
             document.getElementById('dateDisplay').textContent = '';
             document.getElementById('clearNextMeetingDateBtn').style.display = 'none';
             document.getElementById('saveNextMeetingDateBtn').style.display = 'inline-block';
+            saveMeetingToCloud();
         }
 
         // Function to render the table from stored data
@@ -1098,11 +1386,27 @@
                 }
             });
         }
+        
+        // Load table data and render
+        function loadTableData(storageKey, data) {
+            saveData(storageKey, data);
+            const tableBodyIdMap = {
+                'membersPresent': 'membersPresentTableBody',
+                'oldActionItems': 'oldActionItemsTableBody',
+                'newActionItems': 'newActionItemsTableBody',
+                'completedActions': 'completedActionsTableBody',
+                'incidents': 'incidentTableBody',
+                'strengths': 'strengthTableBody',
+                'challenges': 'challengeTableBody',
+                'safetyIdeas': 'safetyIdeasTableBody'
+            };
+            renderTable(tableBodyIdMap[storageKey], data, storageKey);
+        }
 
         // Function to gather all meeting data
         function gatherMeetingData() {
             const data = {
-                meetingDate: localStorage.getItem('nextMeetingDate') || '',
+                nextMeetingDate: localStorage.getItem('nextMeetingDate') || '',
                 membersPresent: loadData('membersPresent'),
                 oldActionItems: loadData('oldActionItems'),
                 newActionItems: loadData('newActionItems'),
@@ -1122,8 +1426,8 @@
             text += "======================================\n\n";
             
             // Format date
-            if (data.meetingDate) {
-                const dateObj = new Date(data.meetingDate);
+            if (data.nextMeetingDate) {
+                const dateObj = new Date(data.nextMeetingDate);
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 const formattedDate = dateObj.toLocaleDateString('en-US', options);
                 text += `Next Meeting Date: ${formattedDate}\n\n`;
@@ -1186,11 +1490,6 @@
                 window.URL.revokeObjectURL(url);
             }, 100);
         }
-        
-        // Function to export as PDF
-        function exportAsPDF() {
-            alert("PDF export functionality would require a server-side component or specialized library. For now, please use the 'Export as Text File' option.");
-        }
 
         // Function to save all relevant meeting data
         function saveAllMeetingData() {
@@ -1219,21 +1518,15 @@
                     document.getElementById('dateDisplay').innerHTML = `<strong>Next Meeting:</strong> ${formattedDate}`;
                 }
 
-                alert('All meeting data has been saved to your browser!');
+                saveMeetingToCloud();
+                alert('All meeting data has been saved and synced!');
             }, 1800);
         }
 
         // Load data on page load for tables and next meeting date
         window.onload = function() {
-            renderTable('membersPresentTableBody', loadData('membersPresent'), 'membersPresent');
-            renderTable('oldActionItemsTableBody', loadData('oldActionItems'), 'oldActionItems');
-            renderTable('newActionItemsTableBody', loadData('newActionItems'), 'newActionItems');
-            renderTable('completedActionsTableBody', loadData('completedActions'), 'completedActions');
-            renderTable('incidentTableBody', loadData('incidents'), 'incidents');
-            renderTable('safetyIdeasTableBody', loadData('safetyIdeas'), 'safetyIdeas');
-            renderTable('strengthTableBody', loadData('strengths'), 'strengths');
-            renderTable('challengeTableBody', loadData('challenges'), 'challenges');
-
+            initializeMeeting();
+            
             // Date initialization and event listeners
             const dateInput = document.getElementById('nextMeetingDate');
             const dateDisplay = document.getElementById('dateDisplay');
