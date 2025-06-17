@@ -3,1561 +3,412 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viking Plastics Safety Meeting</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <title>AI Chat Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary-blue: #004A8F;
-            --light-gray: #f4f4f4;
-            --dark-text: #333;
-            --header-bg: #004d40;
-            --header-text: #ffffff;
-            --border-color: #ddd;
-            --button-color: #004A8F;
-            --button-hover: #003a70;
-            --section-padding: 30px 20px;
-            --success-green: #28a745;
-            --warning-yellow: #ffc107;
-        }
-
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-        }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--light-gray);
-            color: var(--dark-text);
-            line-height: 1.6;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-            min-height: 100vh;
-        }
-
-        header {
-            background-color: var(--header-bg);
-            color: var(--header-text);
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            position: relative;
-        }
-
-        header .logo {
-            height: 50px;
-            margin-right: 20px;
-            filter: invert(1) grayscale(1) brightness(2);
-            position: absolute;
-            left: 20px;
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 2.3em;
-            font-weight: 700;
-            text-align: center;
-            white-space: nowrap;
-            flex: 1;
-            padding: 0 60px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-
-        .sync-status {
-            background-color: var(--warning-yellow);
-            color: #333;
-            text-align: center;
-            padding: 10px;
-            font-weight: 500;
-            position: sticky;
-            top: 70px;
-            z-index: 999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sync-status.synced {
-            background-color: var(--success-green);
-            color: white;
-        }
-
-        .sync-status span {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: #666;
-        }
-
-        .sync-status.synced span {
-            background-color: white;
-        }
-
-        section {
-            background-color: #fff;
-            padding: var(--section-padding);
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
-            border-left: 4px solid var(--primary-blue);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        section:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.12);
-        }
-
-        h2 {
-            color: var(--primary-blue);
-            font-size: 1.6em;
-            margin-top: 0;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--primary-blue);
-            padding-bottom: 10px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        h2 i {
-            font-size: 0.8em;
-            opacity: 0.7;
-        }
-
-        h3 {
-            color: var(--dark-text);
-            font-size: 1.2em;
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-weight: 700;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        textarea.input-field {
-            width: calc(100% - 22px);
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 1em;
             box-sizing: border-box;
-            transition: border-color 0.3s ease;
-        }
-
-        input[type="text"]:focus,
-        input[type="date"]:focus,
-        textarea.input-field:focus {
-            border-color: var(--primary-blue);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(0, 74, 143, 0.2);
-        }
-
-        textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        button {
-            background-color: var(--button-color);
-            color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            margin-right: 10px;
-            font-weight: 500;
-        }
-
-        button:hover {
-            background-color: var(--button-hover);
-            transform: translateY(-2px);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        .input-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .input-controls input[type="text"],
-        .input-controls textarea.input-field {
-            margin-bottom: 0;
-            flex-grow: 1;
-        }
-
-        .input-controls .split-inputs {
-            display: flex;
-            gap: 10px;
-            flex-grow: 1;
-            flex-wrap: wrap;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        .input-controls .split-inputs input {
-            flex-grow: 1;
-            flex-basis: 0;
-            min-width: 150px;
-            margin-bottom: 0;
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
         }
-
-        table {
+        
+        .chat-container {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table th, table td {
-            border: 1px solid var(--border-color);
-            padding: 12px;
-            text-align: left;
-        }
-
-        table th {
-            background-color: #e9e9e9;
-            font-weight: 700;
-            position: sticky;
-            top: 0;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 15px;
-        }
-
-        .table-controls {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 15px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-
-        .data-table-container {
-            margin-top: 20px;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            padding: 5px;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .data-table-container table {
-            margin-top: 0;
-        }
-
-        .initial-kickoff {
-            background-color: #e0f2f7;
-            border: 1px solid #90caf9;
-            padding: var(--section-padding);
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .initial-kickoff h2 {
-            color: var(--primary-blue);
-            border-bottom-color: #90caf9;
-        }
-
-        .initial-kickoff p {
-            margin-bottom: 10px;
-        }
-
-        .remove-btn {
-            background-color: #dc3545;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 0.85em;
-            transition: background-color 0.3s ease;
-        }
-
-        .remove-btn:hover {
-            background-color: #c82333;
-        }
-
-        .save-table-btn {
-            background-color: #6c757d;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background-color 0.3s ease;
-            position: relative;
+            max-width: 900px;
+            height: 90vh;
+            background: rgba(25, 25, 45, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
             overflow: hidden;
-        }
-
-        .save-table-btn:hover {
-            background-color: #5a6268;
-        }
-
-        .clear-table-btn {
-            background-color: #dc3545;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background-color 0.3s ease, transform 0.1s ease;
-        }
-
-        .clear-table-btn:hover {
-            background-color: #c82333;
-            transform: scale(1.02);
-        }
-
-        .clear-table-btn.clear-pulsing {
-            animation: clearPulse 0.5s forwards ease-out;
-        }
-
-        @keyframes clearPulse {
-            0% { background-color: #dc3545; transform: scale(1); }
-            50% { background-color: #ff6347; transform: scale(1.05); }
-            100% { background-color: #dc3545; transform: scale(1); }
-        }
-
-        .save-meeting-btn-container {
-            text-align: center;
-            margin-top: 30px;
-            margin-bottom: 50px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .save-meeting-btn {
-            background-color: var(--header-bg);
-            padding: 15px 30px;
-            font-size: 1.2em;
-            font-weight: 700;
-            border-radius: 8px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-            min-width: 200px;
-            height: 60px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            vertical-align: middle;
-            box-shadow: 0 4px 6px rgba(0, 77, 64, 0.3);
-        }
-
-        .save-meeting-btn:hover {
-            background-color: #003d33;
-            box-shadow: 0 6px 8px rgba(0, 77, 64, 0.4);
-        }
-
-        .save-meeting-btn .button-default-text {
-            display: inline-block;
-            transition: opacity 0.3s ease;
-            opacity: 1;
-            z-index: 1;
-        }
-
-        .save-meeting-btn .button-default-text.hidden {
-            opacity: 0;
-            pointer-events: none;
-            position: absolute;
-        }
-
-        .save-meeting-btn .viking-animated-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
-            opacity: 0;
-            color: #ffffff;
-            font-size: 1.4em;
-            font-weight: 900;
-            white-space: nowrap;
-            pointer-events: none;
-            text-shadow: 0px 2px 5px rgba(0,0,0,0.5);
-            z-index: 2;
-            transition: opacity 0.1s ease-out, transform 0.1s ease-out;
-        }
-
-        .save-meeting-btn .viking-animated-text.animate {
-            animation: buttonVikingReveal 1.8s forwards ease-out;
-        }
-
-        @keyframes buttonVikingReveal {
-            0% {
-                transform: translate(-50%, -50%) scale(0.8);
-                opacity: 0;
-            }
-            15% {
-                transform: translate(-50%, -50%) scale(1.1);
-                opacity: 1;
-            }
-            70% {
-                transform: translate(-50%, -50%) scale(1.0);
-                opacity: 1;
-            }
-            100% {
-                transform: translate(-50%, -50%) scale(1.0);
-                opacity: 0;
-            }
-        }
-
-        .vp-saving-animation {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            opacity: 0;
-            color: var(--header-bg);
-            font-weight: 700;
-            font-size: 1.6em;
-            pointer-events: none;
-            white-space: nowrap;
-            text-shadow: 0px 1px 3px rgba(0,0,0,0.3);
-            z-index: 3;
-        }
-
-        .vp-saving-animation.animate {
-            animation: vpSavePulse 1s forwards ease-out;
-        }
-
-        @keyframes vpSavePulse {
-            0% {
-                transform: translate(-50%, -50%) scale(0);
-                opacity: 0;
-            }
-            20% {
-                transform: translate(-50%, -50%) scale(1.4);
-                opacity: 1;
-            }
-            80% {
-                transform: translate(-50%, -50%) scale(1.2);
-                opacity: 1;
-            }
-            100% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 0;
-            }
-        }
-
-        .date-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .clear-date-btn {
-            background-color: #dc3545;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background-color 0.3s ease;
-        }
-
-        .clear-date-btn:hover {
-            background-color: #c82333;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .export-buttons {
+        .header {
+            background: rgba(15, 15, 35, 0.9);
+            padding: 20px;
             display: flex;
-            gap: 10px;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
             justify-content: center;
+            margin-right: 15px;
+        }
+        
+        .logo i {
+            font-size: 24px;
+        }
+        
+        .header-text h1 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+        
+        .header-text p {
+            font-size: 14px;
+            color: #a0a0c0;
+            margin-top: 5px;
+        }
+        
+        .chat-history {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 18px;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .ai-message {
+            background: rgba(40, 40, 70, 0.8);
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .message-header i {
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        
+        .message-header span {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .message-content {
+            line-height: 1.5;
+        }
+        
+        .input-container {
+            padding: 20px;
+            background: rgba(15, 15, 35, 0.9);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .input-area {
+            display: flex;
+            background: rgba(30, 30, 50, 0.8);
+            border-radius: 50px;
+            padding: 8px 20px;
+            align-items: center;
+        }
+        
+        .input-area input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            padding: 15px 10px;
+            font-size: 16px;
+            outline: none;
+        }
+        
+        .input-area input::placeholder {
+            color: #a0a0c0;
+        }
+        
+        .input-area button {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .input-area button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(106, 17, 203, 0.5);
+        }
+        
+        .input-area button i {
+            font-size: 20px;
+            color: white;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(40, 40, 70, 0.8);
+            border-radius: 18px;
+            align-self: flex-start;
+            margin-bottom: 20px;
+            width: 120px;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background: #a0a0c0;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: typing 1s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-top: 15px;
         }
         
-        .export-btn {
-            background-color: #28a745;
-            color: white;
+        .suggestion {
+            background: rgba(30, 30, 50, 0.8);
+            border: 1px solid rgba(106, 17, 203, 0.5);
+            color: #a0a0c0;
             padding: 10px 20px;
-            border-radius: 5px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            border-radius: 50px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
         
-        .export-btn:hover {
-            background-color: #218838;
+        .suggestion:hover {
+            background: rgba(106, 17, 203, 0.2);
+            color: #fff;
         }
         
-        .export-btn i {
-            font-style: normal;
-            font-size: 1.2em;
+        .timestamp {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            text-align: right;
+            margin-top: 8px;
         }
         
-        footer {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-size: 0.9em;
-            margin-top: 30px;
-            border-top: 1px solid #ddd;
-        }
-
-        .sync-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .sync-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-        }
-
-        .sync-content h3 {
-            margin-bottom: 20px;
-            color: var(--primary-blue);
-        }
-
-        .sync-content p {
-            margin-bottom: 20px;
-        }
-
-        .sync-id-input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 2px solid var(--primary-blue);
-            border-radius: 5px;
-            font-size: 1.1em;
-            text-align: center;
-        }
-
-        .sync-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-
-        /* Mobile Responsiveness */
         @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                justify-content: center;
-                text-align: center;
-                padding: 10px;
-            }
-            header .logo {
-                position: relative;
-                left: auto;
-                margin-right: 0;
-                margin-bottom: 5px;
-            }
-            header h1 {
-                font-size: 1.8em;
-                margin-top: 5px;
-                text-align: center;
-                padding: 0;
-            }
-            .container {
-                margin: 10px auto;
-                padding: 0 10px;
-            }
-            section {
-                padding: 20px 15px;
-            }
-            h2 {
-                font-size: 1.4em;
-            }
-            input[type="text"],
-            input[type="date"],
-            textarea.input-field {
-                width: calc(100% - 20px);
-            }
-            button {
-                width: 100%;
-                margin-bottom: 10px;
-                margin-right: 0;
-            }
-            .input-controls, .table-controls, .input-controls .split-inputs {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .input-controls input[type="text"],
-            .input-controls textarea.input-field {
-                width: 100%;
-            }
-            .table-controls button {
-                 margin-bottom: 10px;
-            }
-            .table-controls button:last-child {
-                 margin-bottom: 0;
-            }
-            .input-controls .split-inputs input {
-                min-width: unset;
-            }
-
-            .save-meeting-btn {
-                min-width: unset;
-                height: auto;
-                padding: 15px 10px;
-            }
-
-            .save-meeting-btn .viking-animated-text {
-                font-size: 1.1em;
+            .chat-container {
+                height: 95vh;
+                border-radius: 15px;
             }
             
-            .date-controls {
-                flex-direction: column;
+            .message {
+                max-width: 90%;
             }
             
-            .export-buttons {
-                flex-direction: column;
-            }
-            
-            .sync-buttons {
-                flex-direction: column;
+            .header {
+                padding: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        <img src="vikinglogo.png" alt="Viking Plastics Logo" class="logo">
-        <h1>Viking Plastics Safety Meeting</h1>
-    </header>
-
-    <div class="sync-status">
-        <span></span> Syncing to cloud...
-    </div>
-
-    <div class="container">
-        <section>
-            <h2>Welcome and Purpose <i>(Changes sync across devices)</i></h2>
-            <p>Welcome to our safety meeting at the Kentucky plant. The purpose of these regular meetings is to foster a proactive safety culture, address potential hazards, discuss incidents, share best practices, and ensure a safe working environment for all employees. Your active participation is crucial to our success.</p>
-        </section>
-
-        <section class="initial-kickoff">
-            <h2>Initial Kickoff Items</h2>
-            <h3>Welcome Message</h3>
-            <p>A warm welcome to everyone joining our first safety meeting at the Viking Plastics Kentucky facility! We are committed to establishing a strong safety culture from day one.</p>
-            <h3>Safety Goals for the Plant</h3>
-            <ul>
-                <li>Promote a safe and open work environment.</li>
-                <li>Ensure 100% completion of all required safety training for new hires within their first 30 days.</li>
-                <li>Conduct monthly safety walks and identify at least three improvements per month.</li>
-                <li>Promote an open reporting culture for near misses and hazards.</li>
-            </ul>
-            <h3>Overview of How These Meetings Will Work Going Forward</h3>
-            <p>These safety meetings will be held monthly. Each meeting will review action items, discuss incidents, share successes, and collaboratively address challenges. We encourage active participation and constructive feedback from all team members to continuously improve our safety performance.</p>
-        </section>
-
-        <section>
-            <h2>Members Present</h2>
-            <p>Please list all attendees with their names and roles/positions.</p>
-            <div class="input-controls">
-                <div class="split-inputs">
-                    <input type="text" id="memberNameInput" class="input-field" placeholder="Enter member name...">
-                    <input type="text" id="memberRoleInput" class="input-field" placeholder="Enter role/position...">
+    <div class="chat-container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="header-text">
+                <h1>AI Assistant</h1>
+                <p>Ask me anything - I'm here to help!</p>
+            </div>
+        </div>
+        
+        <div class="chat-history" id="chatHistory">
+            <div class="message ai-message">
+                <div class="message-header">
+                    <i class="fas fa-robot"></i>
+                    <span>AI Assistant</span>
                 </div>
-                <button onclick="addMember()">Add Member</button>
-            </div>
-            <div class="table-controls">
-                <button class="clear-table-btn" onclick="clearTable('membersPresentTableBody', this)">Clear All Members</button>
-                <button class="save-table-btn" id="saveMembersBtn" onclick="saveTable('membersPresent', this)">Save Table</button>
-            </div>
-            <div class="data-table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Role/Position</th>
-                            <th>Date Added</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="membersPresentTableBody">
-                        </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section>
-            <h2>Old Action Items (High Priority)</h2>
-            <p>Ongoing safety issues that are still unresolved from previous meetings.</p>
-            <div class="input-controls">
-                <textarea id="oldActionItemInput" class="input-field" placeholder="Enter old action item details..."></textarea>
-                <button onclick="addEntry('oldActionItemInput', 'oldActionItemsTableBody', 'oldActionItems')">Add Item</button>
-            </div>
-            <div class="table-controls">
-                <button class="clear-table-btn" onclick="clearTable('oldActionItemsTableBody', this)">Clear All Items</button>
-                <button class="save-table-btn" id="saveOldActionsBtn" onclick="saveTable('oldActionItems', this)">Save Table</button>
-            </div>
-            <div class="data-table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Action Item</th>
-                            <th>Date Added</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="oldActionItemsTableBody">
-                        </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section>
-            <h2>New Action Items</h2>
-            <p>Newly assigned safety tasks or topics brought up in this meeting.</p>
-            <div class="input-controls">
-                <textarea id="newActionItemInput" class="input-field" placeholder="Enter new action item details..."></textarea>
-                <button onclick="addEntry('newActionItemInput', 'newActionItemsTableBody', 'newActionItems')">Add Item</button>
-            </div>
-            <div class="table-controls">
-                <button class="clear-table-btn" onclick="clearTable('newActionItemsTableBody', this)">Clear All Items</button>
-                <button class="save-table-btn" id="saveNewActionsBtn" onclick="saveTable('newActionItems', this)">Save Table</button>
-            </div>
-            <div class="data-table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Action Item</th>
-                            <th>Date Added</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="newActionItemsTableBody">
-                        </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section>
-            <h2>Completed Actions</h2>
-            <p>Safety items or actions that were completed since the last meeting.</p>
-            <div class="input-controls">
-                <textarea id="completedActionInput" class="input-field" placeholder="Enter completed action details..."></textarea>
-                <button onclick="addEntry('completedActionInput', 'completedActionsTableBody', 'completedActions')">Add Item</button>
-            </div>
-            <div class="table-controls">
-                <button class="clear-table-btn" onclick="clearTable('completedActionsTableBody', this)">Clear All Items</button>
-                <button class="save-table-btn" id="saveCompletedActionsBtn" onclick="saveTable('completedActions', this)">Save Table</button>
-            </div>
-            <div class="data-table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Completed Action</th>
-                            <th>Date Added</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="completedActionsTableBody">
-                        </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section>
-            <h2>Incident/Accident Info</h2>
-            <p>A field to write in incident details. Once submitted, it will populate the table below.</p>
-            <div class="input-controls">
-                <textarea id="incidentDetails" class="input-field" placeholder="Enter incident/accident details..."></textarea>
-                <button onclick="addEntry('incidentDetails', 'incidentTableBody', 'incidents')">Add Incident</button>
-            </div>
-            <div class="table-controls">
-                <button class="clear-table-btn" onclick="clearTable('incidentTableBody', this)">Clear All Incidents</button>
-                <button class="save-table-btn" id="saveIncidentsBtn" onclick="saveTable('incidents', this)">Save Table</button>
-            </div>
-
-            <div class="data-table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Details</th>
-                            <th>Date Added</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="incidentTableBody">
-                        </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section>
-            <h2>Safety Ideas/Suggestions</h2>
-            <p>Submit any ideas or suggestions to improve safety at the plant.</p>
-            <div class="input-controls">
-                <textarea id="safetyIdeaInput" class="input-field" placeholder="Enter your safety idea..."></textarea>
-                <button onclick="addEntry('safetyIdeaInput', 'safetyIdeasTableBody', 'safetyIdeas')">Add Idea</button>
-            </div>
-            <div class="table-controls">
-                <button class="clear-table-btn" onclick="clearTable('safetyIdeasTableBody', this)">Clear All Ideas</button>
-                <button class="save-table-btn" id="saveSafetyIdeasBtn" onclick="saveTable('safetyIdeas', this)">Save Table</button>
-            </div>
-            <div class="data-table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Safety Idea</th>
-                            <th>Date Added</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="safetyIdeasTableBody">
-                        </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section>
-            <h2>Key Strengths and Challenges</h2>
-
-            <h3>One Strength</h3>
-            <p>What your plant does very well regarding safety.</p>
-            <div class="input-controls">
-                <input type="text" id="strengthDetail" class="input-field" placeholder="Enter a key safety strength...">
-                <button onclick="addEntry('strengthDetail', 'strengthTableBody', 'strengths')">Add Strength</button>
-            </div>
-            <div class="table-controls">
-                <button class="clear-table-btn" onclick="clearTable('strengthTableBody', this)">Clear All Strengths</button>
-                <button class="save-table-btn" id="saveStrengthsBtn" onclick="saveTable('strengths', this)">Save Table</button>
-            </div>
-
-            <div class="data-table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Strength</th>
-                            <th>Date Added</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="strengthTableBody">
-                        </tbody>
-                </table>
-            </div>
-
-            <h3>One Challenge</h3>
-            <p>A recurring safety issue the plant struggles to manage consistently.</p>
-            <div class="input-controls">
-                <input type="text" id="challengeDetail" class="input-field" placeholder="Enter a recurring safety challenge...">
-                <button onclick="addEntry('challengeDetail', 'challengeTableBody', 'challenges')">Add Challenge</button>
-            </div>
-            <div class="table-controls">
-                <button class="clear-table-btn" onclick="clearTable('challengeTableBody', this)">Clear All Challenges</button>
-                <button class="save-table-btn" id="saveChallengesBtn" onclick="saveTable('challenges', this)">Save Table</button>
-            </div>
-
-            <div class="data-table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Challenge</th>
-                            <th>Date Added</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="challengeTableBody">
-                        </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section>
-            <h2>Next Meeting Date</h2>
-            <p>Enter the date of the next scheduled safety meeting.</p>
-            <div class="input-controls">
-                 <input type="date" id="nextMeetingDate" class="input-field">
-            </div>
-            <div id="dateDisplay" style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px; font-weight: bold; text-align: center; min-height: 24px;"></div>
-            <div class="date-controls">
-                <button id="saveNextMeetingDateBtn" onclick="saveDate()">Save Date</button>
-                <button id="clearNextMeetingDateBtn" class="clear-date-btn" onclick="clearDate()" style="display: none;">Clear Date</button>
-            </div>
-        </section>
-
-        <div class="save-meeting-btn-container">
-            <button class="save-meeting-btn" onclick="saveAllMeetingData()">
-                <span class="button-default-text">Save All Meeting Data</span>
-                <span class="viking-animated-text">Viking Plastics</span>
-            </button>
-            
-            <div class="export-buttons">
-                <button class="export-btn" onclick="exportAsText()">
-                    <i>📄</i> Export as Text File
-                </button>
-                <button class="export-btn" onclick="shareSyncCode()">
-                    <i>🔗</i> Get Sync Code
-                </button>
+                <div class="message-content">
+                    Hello! I'm your AI assistant. I can help answer questions, provide information, and assist with various tasks. How can I help you today?
+                </div>
+                <div class="timestamp">Just now</div>
             </div>
             
-            <p style="margin-top: 10px; font-size: 0.9em; color: #666;">(All changes sync automatically to your other devices)</p>
+            <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
-    </div>
-
-    <footer>
-        <p>Viking Plastics Safety Meeting System | Designed for the Kentucky Plant</p>
-        <p>© 2023 Viking Plastics. All rights reserved.</p>
-    </footer>
-
-    <div class="sync-modal" id="syncModal">
-        <div class="sync-content">
-            <h3>Sync Across Devices</h3>
-            <p>To access this meeting on another device, use the following sync code:</p>
-            <input type="text" id="syncCodeDisplay" class="sync-id-input" readonly>
-            <p>Or enter an existing sync code to join a meeting:</p>
-            <input type="text" id="syncCodeInput" class="sync-id-input" placeholder="Enter sync code">
-            <div class="sync-buttons">
-                <button onclick="copySyncCode()">Copy Sync Code</button>
-                <button onclick="joinMeeting()">Join Meeting</button>
-                <button onclick="closeSyncModal()">Close</button>
+        
+        <div class="input-container">
+            <div class="suggestions">
+                <div class="suggestion">What can you do?</div>
+                <div class="suggestion">Tell me a joke</div>
+                <div class="suggestion">How does AI work?</div>
+                <div class="suggestion">Recommend a book</div>
+            </div>
+            
+            <div class="input-area">
+                <input type="text" id="messageInput" placeholder="Type your message here...">
+                <button id="sendButton">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
             </div>
         </div>
     </div>
-
+    
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyD6SxQdU5v6bGx3yJg-7f3Zz4W8v7y4b0c",
-            authDomain: "viking-plastics-safety.firebaseapp.com",
-            projectId: "viking-plastics-safety",
-            storageBucket: "viking-plastics-safety.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef1234567890"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        
-        // Global variables
-        let currentMeetingId = '';
-        let isNewMeeting = true;
-        
-        // Initialize meeting
-        function initializeMeeting() {
-            // Check if we have a meeting ID in URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const meetingId = urlParams.get('meeting');
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatHistory = document.getElementById('chatHistory');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const typingIndicator = document.getElementById('typingIndicator');
+            const suggestions = document.querySelectorAll('.suggestion');
             
-            if (meetingId) {
-                // Join existing meeting
-                joinMeetingById(meetingId);
-                isNewMeeting = false;
-            } else {
-                // Create new meeting
-                createNewMeeting();
-            }
-        }
-        
-        // Create a new meeting
-        function createNewMeeting() {
-            // Generate a unique meeting ID
-            currentMeetingId = generateMeetingId();
-            
-            // Set URL with meeting ID
-            window.history.replaceState({}, '', `?meeting=${currentMeetingId}`);
-            
-            // Show sync code in modal
-            document.getElementById('syncCodeDisplay').value = currentMeetingId;
-            document.getElementById('syncModal').style.display = 'flex';
-            
-            // Initialize with default data
-            saveAllMeetingData();
-        }
-        
-        // Join meeting by ID
-        function joinMeetingById(meetingId) {
-            currentMeetingId = meetingId;
-            
-            // Load meeting data
-            loadMeetingData(meetingId);
-            
-            // Update sync status
-            updateSyncStatus(true);
-        }
-        
-        // Load meeting data from Firestore
-        function loadMeetingData(meetingId) {
-            db.collection("meetings").doc(meetingId).get().then((doc) => {
-                if (doc.exists) {
-                    const meetingData = doc.data();
-                    
-                    // Set next meeting date
-                    if (meetingData.nextMeetingDate) {
-                        document.getElementById('nextMeetingDate').value = meetingData.nextMeetingDate;
-                        const dateObj = new Date(meetingData.nextMeetingDate);
-                        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                        const formattedDate = dateObj.toLocaleDateString('en-US', options);
-                        document.getElementById('dateDisplay').innerHTML = `<strong>Next Meeting:</strong> ${formattedDate}`;
-                        document.getElementById('clearNextMeetingDateBtn').style.display = 'inline-block';
-                        document.getElementById('saveNextMeetingDateBtn').style.display = 'none';
-                    }
-                    
-                    // Load all tables
-                    loadTableData('membersPresent', meetingData.membersPresent);
-                    loadTableData('oldActionItems', meetingData.oldActionItems);
-                    loadTableData('newActionItems', meetingData.newActionItems);
-                    loadTableData('completedActions', meetingData.completedActions);
-                    loadTableData('incidents', meetingData.incidents);
-                    loadTableData('safetyIdeas', meetingData.safetyIdeas);
-                    loadTableData('strengths', meetingData.strengths);
-                    loadTableData('challenges', meetingData.challenges);
-                    
-                    updateSyncStatus(true);
-                } else {
-                    alert("Meeting not found. Creating a new meeting...");
-                    createNewMeeting();
-                }
-            }).catch((error) => {
-                console.error("Error loading meeting: ", error);
-                alert("Error loading meeting. Creating a new meeting...");
-                createNewMeeting();
-            });
-        }
-        
-        // Save meeting data to Firestore
-        function saveMeetingToCloud() {
-            if (!currentMeetingId) return;
-            
-            const meetingData = gatherMeetingData();
-            
-            db.collection("meetings").doc(currentMeetingId).set(meetingData)
-            .then(() => {
-                console.log("Meeting data saved to cloud");
-                updateSyncStatus(true);
-            })
-            .catch((error) => {
-                console.error("Error saving meeting: ", error);
-                updateSyncStatus(false);
-            });
-        }
-        
-        // Generate a random meeting ID
-        function generateMeetingId() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let result = '';
-            for (let i = 0; i < 8; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
-        }
-        
-        // Update sync status UI
-        function updateSyncStatus(synced) {
-            const syncStatus = document.querySelector('.sync-status');
-            if (synced) {
-                syncStatus.textContent = "Synced to cloud";
-                syncStatus.classList.add('synced');
-            } else {
-                syncStatus.textContent = "Syncing to cloud...";
-                syncStatus.classList.remove('synced');
-            }
-        }
-        
-        // UI functions
-        function shareSyncCode() {
-            document.getElementById('syncCodeDisplay').value = currentMeetingId;
-            document.getElementById('syncModal').style.display = 'flex';
-        }
-        
-        function copySyncCode() {
-            const copyText = document.getElementById("syncCodeDisplay");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999);
-            document.execCommand("copy");
-            alert("Sync code copied to clipboard!");
-        }
-        
-        function joinMeeting() {
-            const syncCode = document.getElementById("syncCodeInput").value.trim();
-            if (syncCode) {
-                window.location.href = `?meeting=${syncCode}`;
-            } else {
-                alert("Please enter a sync code");
-            }
-        }
-        
-        function closeSyncModal() {
-            document.getElementById('syncModal').style.display = 'none';
-        }
-        
-        // Function to load data from localStorage
-        function loadData(key) {
-            const data = localStorage.getItem(key);
-            try {
-                return data ? JSON.parse(data) : [];
-            } catch (e) {
-                console.error("Error parsing localStorage data for key:", key, e);
-                return [];
-            }
-        }
-
-        // Function to save data to localStorage
-        function saveData(key, data) {
-            localStorage.setItem(key, JSON.stringify(data));
-        }
-
-        // --- Main Save Button Animation Control ---
-        function triggerButtonVikingAnimation() {
-            const saveButton = document.querySelector('.save-meeting-btn');
-            const defaultText = saveButton.querySelector('.button-default-text');
-            const animatedText = saveButton.querySelector('.viking-animated-text');
-
-            // Hide default text
-            defaultText.classList.add('hidden');
-
-            // Reset animation
-            animatedText.classList.remove('animate');
-            void animatedText.offsetWidth; // Trigger reflow
-            animatedText.classList.add('animate');
-
-            // After animation, revert button state
-            setTimeout(() => {
-                defaultText.classList.remove('hidden');
-                animatedText.classList.remove('animate');
-            }, 1800);
-        }
-
-        // --- VP Saving Animation for Individual Buttons ---
-        function triggerVpSaveAnimation(buttonElement) {
-            // Prevent multiple animations if clicked rapidly
-            if (buttonElement.querySelector('.vp-saving-animation')) {
-                return;
-            }
-
-            const vpAnimation = document.createElement('span');
-            vpAnimation.textContent = 'VP';
-            vpAnimation.className = 'vp-saving-animation';
-            buttonElement.appendChild(vpAnimation);
-
-            // Trigger reflow to restart animation
-            void vpAnimation.offsetWidth;
-            vpAnimation.classList.add('animate');
-
-            // Remove the animation element after it completes
-            vpAnimation.addEventListener('animationend', () => {
-                vpAnimation.remove();
-            }, { once: true });
-        }
-
-        // Function to remove a row from a table and update localStorage
-        function removeRow(row, storageKey) {
-            const tableBody = row.parentNode;
-            const itemIndex = parseInt(row.getAttribute('data-index'));
-
-            const data = loadData(storageKey);
-            const newData = data.filter((_, index) => index !== itemIndex);
-
-            saveData(storageKey, newData);
-            renderTable(tableBody.id, newData, storageKey);
-            saveMeetingToCloud();
-        }
-
-        // Function to clear all rows from a table and localStorage
-        function clearTable(tableBodyId, buttonElement) {
-            // Trigger clear button animation
-            if (buttonElement) {
-                buttonElement.classList.remove('clear-pulsing');
-                void buttonElement.offsetWidth;
-                buttonElement.classList.add('clear-pulsing');
-            }
-
-            const tableBody = document.getElementById(tableBodyId);
-            while (tableBody.firstChild) {
-                tableBody.removeChild(tableBody.firstChild);
-            }
-            const storageKeyMap = {
-                'membersPresentTableBody': 'membersPresent',
-                'oldActionItemsTableBody': 'oldActionItems',
-                'newActionItemsTableBody': 'newActionItems',
-                'completedActionsTableBody': 'completedActions',
-                'incidentTableBody': 'incidents',
-                'strengthTableBody': 'strengths',
-                'challengeTableBody': 'challenges',
-                'safetyIdeasTableBody': 'safetyIdeas'
-            };
-            saveData(storageKeyMap[tableBodyId], []);
-            saveMeetingToCloud();
-        }
-
-        // Explicit Save Table Function - Now triggers VP animation
-        function saveTable(storageKey, buttonElement) {
-            const tableBodyIdMap = {
-                'membersPresent': 'membersPresentTableBody',
-                'oldActionItems': 'oldActionItemsTableBody',
-                'newActionItems': 'newActionItemsTableBody',
-                'completedActions': 'completedActionsTableBody',
-                'incidents': 'incidentTableBody',
-                'strengths': 'strengthTableBody',
-                'challenges': 'challengeTableBody',
-                'safetyIdeas': 'safetyIdeasTableBody'
-            };
-            const tableBody = document.getElementById(tableBodyIdMap[storageKey]);
-            const rows = tableBody.getElementsByTagName('tr');
-            const dataToSave = [];
-
-            if (storageKey === 'membersPresent') {
-                for (let i = 0; i < rows.length; i++) {
-                    const cells = rows[i].getElementsByTagName('td');
-                    if (cells.length >= 3) {
-                        dataToSave.push({
-                            name: cells[0].textContent,
-                            role: cells[1].textContent,
-                            date: cells[2].textContent
-                        });
-                    }
-                }
-            } else {
-                for (let i = 0; i < rows.length; i++) {
-                    const cells = rows[i].getElementsByTagName('td');
-                    if (cells.length >= 2) {
-                        dataToSave.push({
-                            content: cells[0].textContent,
-                            date: cells[1].textContent
-                        });
-                    }
-                }
-            }
-            saveData(storageKey, dataToSave);
-            // Trigger the "VP" animation on the clicked button
-            if (buttonElement) {
-                triggerVpSaveAnimation(buttonElement);
-            }
-            saveMeetingToCloud();
-        }
-
-        // Generic function to add an entry to any specified table
-        function addEntry(inputId, tableBodyId, storageKey) {
-            const inputElement = document.getElementById(inputId);
-            const content = inputElement.value.trim();
-
-            if (content) {
-                const data = loadData(storageKey);
-                data.push({ content: content, date: new Date().toLocaleDateString() });
-                saveData(storageKey, data);
-                renderTable(tableBodyId, data, storageKey);
-                inputElement.value = '';
-                saveMeetingToCloud();
-            }
-        }
-
-        // Specific function for Members Present (with name and role)
-        function addMember() {
-            const nameInput = document.getElementById('memberNameInput');
-            const roleInput = document.getElementById('memberRoleInput');
-            const name = nameInput.value.trim();
-            const role = roleInput.value.trim();
-
-            if (name) {
-                const members = loadData('membersPresent');
-                members.push({ name: name, role: role, date: new Date().toLocaleDateString() });
-                saveData('membersPresent', members);
-                renderTable('membersPresentTableBody', members, 'membersPresent');
-                nameInput.value = '';
-                roleInput.value = '';
-                saveMeetingToCloud();
-            } else {
-                alert('Please enter a member name.');
-            }
-        }
-
-        // Function to save the next meeting date
-        function saveDate() {
-            const dateInput = document.getElementById('nextMeetingDate');
-            const dateValue = dateInput.value;
-            
-            if (dateValue) {
-                localStorage.setItem('nextMeetingDate', dateValue);
+            // Function to add a message to the chat
+            function addMessage(content, isUser) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(isUser ? 'user-message' : 'ai-message');
                 
-                // Format date correctly without timezone issues
-                const dateObj = new Date(dateValue);
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                const formattedDate = dateObj.toLocaleDateString('en-US', options);
+                const messageHeader = document.createElement('div');
+                messageHeader.classList.add('message-header');
                 
-                document.getElementById('dateDisplay').innerHTML = `<strong>Next Meeting:</strong> ${formattedDate}`;
+                const icon = document.createElement('i');
+                icon.classList.add('fas', isUser ? 'fa-user' : 'fa-robot');
                 
-                // Show Clear button, hide Save button
-                document.getElementById('clearNextMeetingDateBtn').style.display = 'inline-block';
-                document.getElementById('saveNextMeetingDateBtn').style.display = 'none';
+                const name = document.createElement('span');
+                name.textContent = isUser ? 'You' : 'AI Assistant';
                 
-                // Trigger animation on save button
-                triggerVpSaveAnimation(document.getElementById('saveNextMeetingDateBtn'));
-                saveMeetingToCloud();
-            } else {
-                alert('Please select a date.');
-            }
-        }
-
-        // Function to clear the saved date
-        function clearDate() {
-            localStorage.removeItem('nextMeetingDate');
-            document.getElementById('nextMeetingDate').value = '';
-            document.getElementById('dateDisplay').textContent = '';
-            document.getElementById('clearNextMeetingDateBtn').style.display = 'none';
-            document.getElementById('saveNextMeetingDateBtn').style.display = 'inline-block';
-            saveMeetingToCloud();
-        }
-
-        // Function to render the table from stored data
-        function renderTable(tableBodyId, data, storageKey) {
-            const tableBody = document.getElementById(tableBodyId);
-            tableBody.innerHTML = '';
-
-            data.forEach((item, index) => {
-                const row = tableBody.insertRow();
-                row.setAttribute('data-index', index);
-
-                if (storageKey === 'membersPresent') {
-                    const nameCell = row.insertCell(0);
-                    const roleCell = row.insertCell(1);
-                    const dateCell = row.insertCell(2);
-                    const actionCell = row.insertCell(3);
-
-                    nameCell.textContent = item.name;
-                    roleCell.textContent = item.role;
-                    dateCell.textContent = item.date;
-
-                    const removeBtn = document.createElement('button');
-                    removeBtn.textContent = 'Remove';
-                    removeBtn.className = 'remove-btn';
-                    removeBtn.onclick = function() {
-                        removeRow(row, storageKey);
-                    };
-                    actionCell.appendChild(removeBtn);
-                } else {
-                    const contentCell = row.insertCell(0);
-                    const dateCell = row.insertCell(1);
-                    const actionCell = row.insertCell(2);
-
-                    contentCell.textContent = item.content;
-                    dateCell.textContent = item.date;
-
-                    const removeBtn = document.createElement('button');
-                    removeBtn.textContent = 'Remove';
-                    removeBtn.className = 'remove-btn';
-                    removeBtn.onclick = function() {
-                        removeRow(row, storageKey);
-                    };
-                    actionCell.appendChild(removeBtn);
-                }
-            });
-        }
-        
-        // Load table data and render
-        function loadTableData(storageKey, data) {
-            saveData(storageKey, data);
-            const tableBodyIdMap = {
-                'membersPresent': 'membersPresentTableBody',
-                'oldActionItems': 'oldActionItemsTableBody',
-                'newActionItems': 'newActionItemsTableBody',
-                'completedActions': 'completedActionsTableBody',
-                'incidents': 'incidentTableBody',
-                'strengths': 'strengthTableBody',
-                'challenges': 'challengeTableBody',
-                'safetyIdeas': 'safetyIdeasTableBody'
-            };
-            renderTable(tableBodyIdMap[storageKey], data, storageKey);
-        }
-
-        // Function to gather all meeting data
-        function gatherMeetingData() {
-            const data = {
-                nextMeetingDate: localStorage.getItem('nextMeetingDate') || '',
-                membersPresent: loadData('membersPresent'),
-                oldActionItems: loadData('oldActionItems'),
-                newActionItems: loadData('newActionItems'),
-                completedActions: loadData('completedActions'),
-                incidents: loadData('incidents'),
-                safetyIdeas: loadData('safetyIdeas'),
-                strengths: loadData('strengths'),
-                challenges: loadData('challenges')
-            };
-            
-            return data;
-        }
-        
-        // Function to format meeting data as text
-        function formatMeetingDataAsText(data) {
-            let text = "VIKING PLASTICS SAFETY MEETING REPORT\n";
-            text += "======================================\n\n";
-            
-            // Format date
-            if (data.nextMeetingDate) {
-                const dateObj = new Date(data.nextMeetingDate);
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                const formattedDate = dateObj.toLocaleDateString('en-US', options);
-                text += `Next Meeting Date: ${formattedDate}\n\n`;
+                messageHeader.appendChild(icon);
+                messageHeader.appendChild(name);
+                
+                const messageContent = document.createElement('div');
+                messageContent.classList.add('message-content');
+                messageContent.textContent = content;
+                
+                const timestamp = document.createElement('div');
+                timestamp.classList.add('timestamp');
+                timestamp.textContent = getCurrentTime();
+                
+                messageDiv.appendChild(messageHeader);
+                messageDiv.appendChild(messageContent);
+                messageDiv.appendChild(timestamp);
+                
+                chatHistory.appendChild(messageDiv);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
             }
             
-            // Format each section
-            const sections = [
-                { title: "MEMBERS PRESENT", data: data.membersPresent, type: "members" },
-                { title: "OLD ACTION ITEMS", data: data.oldActionItems, type: "items" },
-                { title: "NEW ACTION ITEMS", data: data.newActionItems, type: "items" },
-                { title: "COMPLETED ACTIONS", data: data.completedActions, type: "items" },
-                { title: "INCIDENTS/ACCIDENTS", data: data.incidents, type: "items" },
-                { title: "SAFETY IDEAS/SUGGESTIONS", data: data.safetyIdeas, type: "items" },
-                { title: "KEY STRENGTHS", data: data.strengths, type: "items" },
-                { title: "KEY CHALLENGES", data: data.challenges, type: "items" }
-            ];
+            // Function to get current time in HH:MM format
+            function getCurrentTime() {
+                const now = new Date();
+                return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            }
             
-            sections.forEach(section => {
-                if (section.data.length > 0) {
-                    text += `\n${section.title}\n`;
-                    text += `${'-'.repeat(section.title.length)}\n`;
+            // Function to simulate AI response
+            function simulateAIResponse(userMessage) {
+                // Show typing indicator
+                typingIndicator.style.display = 'flex';
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+                
+                // Hide typing indicator and show response after delay
+                setTimeout(() => {
+                    typingIndicator.style.display = 'none';
                     
-                    if (section.type === "members") {
-                        section.data.forEach((item, index) => {
-                            text += `${index + 1}. ${item.name} (${item.role}) - Added: ${item.date}\n`;
-                        });
+                    let response;
+                    
+                    // Simple responses based on user input
+                    if (userMessage.toLowerCase().includes('hello') || userMessage.toLowerCase().includes('hi')) {
+                        response = "Hello there! How can I assist you today?";
+                    } else if (userMessage.toLowerCase().includes('joke')) {
+                        response = "Why don't scientists trust atoms? Because they make up everything!";
+                    } else if (userMessage.toLowerCase().includes('book') || userMessage.toLowerCase().includes('recommend')) {
+                        response = "I recommend 'The Three-Body Problem' by Liu Cixin. It's an excellent science fiction novel that explores humanity's first contact with an alien civilization.";
+                    } else if (userMessage.toLowerCase().includes('ai') || userMessage.toLowerCase().includes('work')) {
+                        response = "AI systems work by analyzing large amounts of data to identify patterns and make decisions. They use techniques like machine learning, neural networks, and natural language processing to simulate human intelligence.";
+                    } else if (userMessage.toLowerCase().includes('thank')) {
+                        response = "You're welcome! Is there anything else I can help you with?";
+                    } else if (userMessage.toLowerCase().includes('weather')) {
+                        response = "I don't have real-time weather data, but I can help you find a weather service if you'd like!";
                     } else {
-                        section.data.forEach((item, index) => {
-                            text += `${index + 1}. ${item.content} - Added: ${item.date}\n`;
-                        });
+                        response = "That's an interesting question! As an AI assistant, I'm designed to provide helpful information on a wide range of topics. Could you clarify or ask something else?";
                     }
                     
-                    text += "\n";
-                }
-            });
-            
-            return text;
-        }
-        
-        // Function to export as text file
-        function exportAsText() {
-            const meetingData = gatherMeetingData();
-            const textContent = formatMeetingDataAsText(meetingData);
-            
-            const blob = new Blob([textContent], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            const date = new Date();
-            const fileName = `viking_safety_meeting_${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}.txt`;
-            
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            
-            // Clean up
-            setTimeout(() => {
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-            }, 100);
-        }
-
-        // Function to save all relevant meeting data
-        function saveAllMeetingData() {
-            triggerButtonVikingAnimation();
-
-            // Execute all save operations after a short delay
-            setTimeout(() => {
-                saveTable('membersPresent');
-                saveTable('oldActionItems');
-                saveTable('newActionItems');
-                saveTable('completedActions');
-                saveTable('incidents');
-                saveTable('safetyIdeas');
-                saveTable('strengths');
-                saveTable('challenges');
-
-                const nextMeetingDateInput = document.getElementById('nextMeetingDate');
-                if (nextMeetingDateInput.value) {
-                    localStorage.setItem('nextMeetingDate', nextMeetingDateInput.value);
-                    
-                    // Format date correctly
-                    const dateObj = new Date(nextMeetingDateInput.value);
-                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                    const formattedDate = dateObj.toLocaleDateString('en-US', options);
-                    
-                    document.getElementById('dateDisplay').innerHTML = `<strong>Next Meeting:</strong> ${formattedDate}`;
-                }
-
-                saveMeetingToCloud();
-                alert('All meeting data has been saved and synced!');
-            }, 1800);
-        }
-
-        // Load data on page load for tables and next meeting date
-        window.onload = function() {
-            initializeMeeting();
-            
-            // Date initialization and event listeners
-            const dateInput = document.getElementById('nextMeetingDate');
-            const dateDisplay = document.getElementById('dateDisplay');
-            const saveDateBtn = document.getElementById('saveNextMeetingDateBtn');
-            const clearDateBtn = document.getElementById('clearNextMeetingDateBtn');
-            
-            // Show selected date in real-time
-            dateInput.addEventListener('change', function() {
-                if (this.value) {
-                    const dateObj = new Date(this.value);
-                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                    const formattedDate = dateObj.toLocaleDateString('en-US', options);
-                    dateDisplay.innerHTML = `<strong>Selected Date:</strong> ${formattedDate}`;
-                    
-                    // Show Save button if date is selected
-                    saveDateBtn.style.display = 'inline-block';
-                }
-            });
-            
-            // Load saved date if exists
-            const savedDate = localStorage.getItem('nextMeetingDate');
-            if (savedDate) {
-                dateInput.value = savedDate;
-                const dateObj = new Date(savedDate);
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                const formattedDate = dateObj.toLocaleDateString('en-US', options);
-                dateDisplay.innerHTML = `<strong>Next Meeting:</strong> ${formattedDate}`;
-                clearDateBtn.style.display = 'inline-block';
-                saveDateBtn.style.display = 'none';
+                    addMessage(response, false);
+                }, 1500);
             }
-        };
+            
+            // Event listener for send button
+            sendButton.addEventListener('click', function() {
+                const message = messageInput.value.trim();
+                if (message) {
+                    addMessage(message, true);
+                    messageInput.value = '';
+                    simulateAIResponse(message);
+                }
+            });
+            
+            // Event listener for Enter key
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendButton.click();
+                }
+            });
+            
+            // Event listeners for suggestions
+            suggestions.forEach(suggestion => {
+                suggestion.addEventListener('click', function() {
+                    messageInput.value = this.textContent;
+                    sendButton.click();
+                });
+            });
+        });
     </script>
 </body>
 </html>
